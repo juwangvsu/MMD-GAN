@@ -14,11 +14,11 @@ flags.DEFINE_float("decay_rate", .5, "Decay rate [.5]")
 flags.DEFINE_float("gp_decay_rate", 1.0, "Decay rate [1.0]")
 flags.DEFINE_float("beta1", 0.5, "Momentum term of adam [0.5]")
 flags.DEFINE_float("init", 0.1, "Initialization value [0.1]")
-flags.DEFINE_integer("batch_size", 64, "The size of batch images [1000]")
+flags.DEFINE_integer("batch_size", 32, "The size of batch images [1000]")
 flags.DEFINE_integer("real_batch_size", -1, "The size of batch images for real samples. If -1 then same as batch_size [-1]")
 flags.DEFINE_integer("output_size", 32, "The size of the output images to produce [64]")
 flags.DEFINE_integer("c_dim", 3, "Dimension of image color. [3]")
-flags.DEFINE_string("dataset", "cifar10", "The name of the model fro saving puposes")
+flags.DEFINE_string("dataset", "mnist", "The name of the model fro saving puposes")
 flags.DEFINE_string("name", "mmd_test", "The name of dataset [celebA, mnist, lsun, cifar10]")
 flags.DEFINE_string("checkpoint_dir", "checkpoint_mmd", "Directory name to save the checkpoints [checkpoint_mmd]")
 flags.DEFINE_string("sample_dir", "samples_mmd", "Directory name to save the image samples [samples_mmd]")
@@ -65,11 +65,14 @@ def main(_):
     elif 'cramer' in FLAGS.model:
         from core.cramer import Cramer_GAN as Model
 
-        
+       
+    print('-----model----- ', Model, FLAGS.dataset)
     with tf.Session(config=sess_config) as sess:
         if FLAGS.dataset == 'mnist':
+            print('----dataset mnist ---')
             gan = Model(sess, config=FLAGS, batch_size=FLAGS.batch_size, output_size=28, c_dim=1,
                         data_dir=FLAGS.data_dir)
+            print('----dataset mnist model created---')
         elif FLAGS.dataset == 'cifar10':
             gan = Model(sess, config=FLAGS, batch_size=FLAGS.batch_size, output_size=32, c_dim=3,
                         data_dir=FLAGS.data_dir)
@@ -82,6 +85,7 @@ def main(_):
                         data_dir=FLAGS.data_dir)
             
         if FLAGS.is_train:
+            print('---------training -------')
             gan.train()
         elif FLAGS.print_pca:
             gan.print_pca()

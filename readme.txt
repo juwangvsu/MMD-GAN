@@ -1,0 +1,30 @@
+
+
+
+-------------------------7/7/24 core.mmd no attribute __kernel----------------------------------------
+  File "/workspace/gan/core/model.py", line 160, in set_loss
+    kernel = getattr(mmd, '_%s_kernel' % self.config.kernel)
+AttributeError: module 'core.mmd' has no attribute '__kernel'
+
+-------------------------7/6/24 dataset issue----------------------------------------
+log see:
+	samples_mmd/mmd_test/cifar1064x64_dcgan_dc_d5-5-1_32_32_lr0.00010000_bn/log.txt
+	No such file or directory: './data/cifar10/data_batch_1'
+Log file: <_io.TextIOWrapper name='samples_mmd/mmd_test/mnist64x64_dcgan_dc_d5-5-1_32_28_lr0.00010000_bn/log.txt' mode='w' encoding='ANSI_X3.4-1968'>
+
+fixed:
+	~/Documents/igor/dcgan/dcgan$ cp MNIST/raw/* ~/Documents/igor/MMD-GAN/gan/data/mnist
+-------------------------7/5/24 docker setup tf1.4 py3.6----------------------------------------
+docker compose -f docker-compose-tf1_3.yaml up top
+
+docker image build:
+	~/Documents/phoenix_note2/docker/tf14$ vi readme_tf13docker.txt 
+
+---
+  pip3.6 install lmdb
+  pip3.6 install Pillow
+  pip3.6 install matplotlib
+  pip3.6 install sklearn
+  pip3.6 install tqdm
+  python3.6 main.py 
+
