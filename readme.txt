@@ -23,11 +23,16 @@ docker compose -f docker-compose-tf1_3.yaml up top
 
 docker exec -it mmd-gan-top bash
 	cd /workspace
+	pip3.6 install -r docker/requirements.txt
+	download mnist dataset to data/
+		mkdir data
+		https://drive.google.com/file/d/1V35qidHrK9bThiNAdyYdQdJS3gRUEFxl/view?usp=sharing
+	./mnist.sh
 
 docker image build:
 	~/Documents/phoenix_note2/docker/tf14$ vi readme_tf13docker.txt 
 
----
+-----------------------------------------------------------------------------
   pip3.6 install lmdb
   pip3.6 install Pillow
   pip3.6 install matplotlib

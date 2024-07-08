@@ -8,7 +8,7 @@ export TF_MIN_GPU_MULTIPROCESSOR_COUNT=3
 
 echo ${MODEL}
 if [ ${MODEL} == "MMD" ] || [[ ${MODEL} == 'ALL' ]]; then
-    python ./gan/main.py \
+    python3.6 ./gan/main.py \
         --checkpoint_dir=${SAVEPATH}checkpoint \
         --sample_dir=${SAVEPATH}samples \
         --log_dir=${SAVEPATH}logs \
@@ -22,7 +22,7 @@ if [ ${MODEL} == "MMD" ] || [[ ${MODEL} == 'ALL' ]]; then
 fi
 
 if [[ ${MODEL} == 'WGAN-GP' ]] || [[ ${MODEL} == 'ALL' ]]; then
-    python ./gan/main.py \
+    python3.6 ./gan/main.py \
         --checkpoint_dir=${SAVEPATH}checkpoint \
         --sample_dir=${SAVEPATH}samples \
         --log_dir=${SAVEPATH}logs \
@@ -36,7 +36,7 @@ if [[ ${MODEL} == 'WGAN-GP' ]] || [[ ${MODEL} == 'ALL' ]]; then
 fi
 
 if [[ ${MODEL} == 'CRAMER' ]] || [[ ${MODEL} == 'ALL' ]]; then
-    python ./gan/main.py \
+    python3.6 ./gan/main.py \
         --checkpoint_dir=${SAVEPATH}checkpoint \
         --sample_dir=${SAVEPATH}samples \
         --log_dir=${SAVEPATH}logs \
