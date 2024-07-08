@@ -29,6 +29,12 @@ docker exec -it mmd-gan-top bash
 		https://drive.google.com/file/d/1V35qidHrK9bThiNAdyYdQdJS3gRUEFxl/view?usp=sharing
 	./mnist.sh
 
+testing cifar10.sh
+	download cifar10 data using dcgan main.py and copy to .data/cifar10
+		dcgan$ python main.py --dataset cifar10 --dataroot /data/cifar10
+	inside docker:
+		./cifar10.sh
+		
 docker image build:
 	~/Documents/phoenix_note2/docker/tf14$ vi readme_tf13docker.txt 
 
