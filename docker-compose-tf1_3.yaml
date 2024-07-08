@@ -1,6 +1,6 @@
 services:
   vision:
-    image: tf14py36:latest
+    image: jwang3vsu/tf14py36:latest
     container_name: "${COMPOSE_PROJECT_NAME}-vision"
     stdin_open: true
     tty: true
