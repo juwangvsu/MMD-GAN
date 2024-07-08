@@ -7,6 +7,8 @@
 AttributeError: module 'core.mmd' has no attribute '__kernel'
 
 -------------------------7/6/24 dataset issue----------------------------------------
+cd gan; python3.6 main.py --data_dir ../data
+
 log see:
 	samples_mmd/mmd_test/cifar1064x64_dcgan_dc_d5-5-1_32_32_lr0.00010000_bn/log.txt
 	No such file or directory: './data/cifar10/data_batch_1'
@@ -15,7 +17,12 @@ Log file: <_io.TextIOWrapper name='samples_mmd/mmd_test/mnist64x64_dcgan_dc_d5-5
 fixed:
 	~/Documents/igor/dcgan/dcgan$ cp MNIST/raw/* ~/Documents/igor/MMD-GAN/gan/data/mnist
 -------------------------7/5/24 docker setup tf1.4 py3.6----------------------------------------
+docker pull jwang3vsu/tf14py36:latest
+cd ~/Documents/igor/MMD-GAN
 docker compose -f docker-compose-tf1_3.yaml up top
+
+docker exec -it mmd-gan-top bash
+	cd /workspace
 
 docker image build:
 	~/Documents/phoenix_note2/docker/tf14$ vi readme_tf13docker.txt 

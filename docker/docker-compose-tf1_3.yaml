@@ -1,0 +1,201 @@
+services:
+  vision:
+    image: tf14py36:latest
+    container_name: "${COMPOSE_PROJECT_NAME}-vision"
+    stdin_open: true
+    tty: true
+    network_mode: host
+    ipc: host
+    privileged: true
+    volumes:
+      - .:/tools/misc:ro
+      - ${STORAGE:-/tmp}/dataset:/data/dataset:rw
+    entrypoint:
+      - "/entrypoint.sh"
+      - "ros2"
+      - "launch"
+      - "vision_ros"
+      - "launch.py"
+      - "launch:=vision"
+      - "on:=joint"
+      - "off:=health"
+  gpu:
+    container_name: "${COMPOSE_PROJECT_NAME}-gpu"
+    extends: vision
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+  top:
+    container_name: "${COMPOSE_PROJECT_NAME}-top"
+    extends: gpu
+    environment:
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
+      - DISPLAY=${DISPLAY}
+      - QT_X11_NO_MITSHM=1
+    volumes:
+      - .:/workspace:rw
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ${XAUTHORITY:-$HOME/.Xauthority}:/root/.Xauthority
+      - /media/student/:/media/student:rw
+    entrypoint:
+      - sleep
+      - infinity
+  rviz:
+    image: registry.gitlab.com/yongtang/ros_docker/vision:master
+    container_name: "${COMPOSE_PROJECT_NAME}-rviz"
+    stdin_open: true
+    tty: true
+    network_mode: host
+    ipc: host
+    privileged: true
+    environment:
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
+      - DISPLAY=${DISPLAY}
+      - QT_X11_NO_MITSHM=1
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ${XAUTHORITY:-$HOME/.Xauthority}:/root/.Xauthority
+      # mount
+      - ./demo.rviz:/tmp/demo.rviz:ro
+      - ./demo.rviz.py:/tmp/demo.rviz.py:ro
+    entrypoint:
+      - "/entrypoint.sh"
+      - "ros2"
+      - "launch"
+      - "/tmp/demo.rviz.py"
+  setup:
+    image: registry.gitlab.com/yongtang/ros_docker/vision:master
+    container_name: "${COMPOSE_PROJECT_NAME}-setup"
+    stdin_open: true
+    tty: true
+    network_mode: host
+    ipc: host
+    privileged: true
+    environment:
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
+      - DISPLAY=${DISPLAY}
+      - QT_X11_NO_MITSHM=1
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ${XAUTHORITY:-$HOME/.Xauthority}:/root/.Xauthority
+    entrypoint:
+      - "/entrypoint.sh"
+      - "ros2"
+      - "launch"
+      - "moveit_setup_assistant"
+      - "setup_assistant.launch.py"
+  pose:
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM nvcr.io/nvidia/isaac/ros:x86_64-ros2_humble_bcf535ea3b9d16a854aaeb1701ab5a86
+        RUN DEBIAN_FRONTEND=noninteractive apt -y -qq update && \
+            DEBIAN_FRONTEND=noninteractive apt -y -qq install --no-install-recommends \
+                ros-humble-isaac-ros-centerpose \
+                ros-humble-isaac-ros-dnn-image-encoder \
+                ros-humble-isaac-ros-triton \
+                ros-humble-isaac-ros-dope \
+                ros-humble-isaac-ros-tensor-rt \
+                ros-humble-isaac-ros-dnn-image-encoder && \
+                rm -rf /var/lib/apt/lists/* && apt clean
+        RUN mkdir -p /tmp/models/centerpose_shoe/1 && \
+            curl -o /tmp/models/centerpose_shoe/1/model.onnx -L https://github.com/NVIDIA-ISAAC-ROS/isaac_ros_pose_estimation/raw/main/isaac_ros_centerpose/test/models/centerpose_shoe.onnx &&\
+            curl -o /tmp/models/centerpose_shoe/config.pbtxt -L https://raw.githubusercontent.com/NVIDIA-ISAAC-ROS/isaac_ros_pose_estimation/main/isaac_ros_centerpose/test/models/centerpose_shoe/config.pbtxt
+        COPY centerpose_bottle /tmp/models/centerpose_bottle
+        COPY centerpose_shoe/1/model.plan /tmp/models/centerpose_shoe/1/
+        COPY bashrc_pose /root/.bashrc
+        COPY run_centerpose.sh /root/
+        COPY run_centerpose_shoe.sh /root/
+        COPY run_targetxyz.sh /root/
+        COPY isaac_ros_centerpose_triton.launch.py  /root/
+    container_name: "${COMPOSE_PROJECT_NAME}-pose"
+    stdin_open: true
+    tty: true
+    network_mode: host
+    ipc: host
+    privileged: true
+    environment:
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
+      - DISPLAY=${DISPLAY}
+      - QT_X11_NO_MITSHM=1
+    volumes:
+      - .:/tools/misc:ro
+      - ${STORAGE:-/tmp}/dataset:/data/dataset:rw
+      - ~/workspaces/isaac_ros-dev:/workspaces/isaac_ros-dev 
+    entrypoint:
+      - sleep
+      - infinity
+      #- "/bin/bash"
+      #- "-x"
+      #- "-e"
+      #- "-c"
+      #- "/usr/src/tensorrt/bin/trtexec --onnx=/tmp/models/centerpose_shoe/1/model.onnx --saveEngine=/tmp/models/centerpose_shoe/1/model.plan && source /opt/ros/humble/setup.bash && ros2 launch isaac_ros_centerpose isaac_ros_centerpose_triton.launch.py model_name:=centerpose_shoe model_repository_paths:=['/tmp/models']"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+  render:
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM registry.gitlab.com/yongtang/ros_docker/vision:master
+        RUN DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a apt-get -y -q update && \
+            DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a apt-get -y -q --no-install-recommends install \
+                ros-humble-moveit-ros-perception \
+                ros-humble-moveit-visual-tools \
+                ros-humble-rviz-visual-tools
+        ADD render /opt/ros/tools/src/render
+        RUN git clone https://github.com/ros-planning/moveit_task_constructor.git /opt/ros/tools/src/moveit_task_constructor --depth 1 -b humble
+        RUN bash -x -e -c 'source /opt/ros/humble/setup.bash && source /opt/ros/local/install/setup.bash && source /opt/ros/vision/install/setup.bash && cd /opt/ros/tools && colcon build --packages-select moveit_task_constructor_core moveit_task_constructor_msgs rviz_marker_tools render'
+    container_name: "${COMPOSE_PROJECT_NAME}-render"
+    stdin_open: true
+    tty: true
+    network_mode: host
+    ipc: host
+    privileged: true
+    entrypoint:
+      - sleep
+      - infinity
+  omni:
+    image: ghcr.io/yongtang/ros_docker/client:master
+    container_name: "${COMPOSE_PROJECT_NAME}-omni"
+    stdin_open: true
+    tty: true
+    network_mode: host
+    ipc: host
+    privileged: true
+    environment:
+      - ACCEPT_EULA=Y
+      - PRIVACY_CONSENT=Y
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
+      - DISPLAY=${DISPLAY}
+      - QT_X11_NO_MITSHM=1
+    volumes:
+      - ~/docker/isaac-sim/cache/kit:/isaac-sim/kit/cache:rw
+      - ~/docker/isaac-sim/cache/ov:/root/.cache/ov:rw
+      - ~/docker/isaac-sim/cache/pip:/root/.cache/pip:rw
+      - ~/docker/isaac-sim/cache/glcache:/root/.cache/nvidia/GLCache:rw
+      - ~/docker/isaac-sim/cache/computecache:/root/.nv/ComputeCache:rw
+      - ~/docker/isaac-sim/logs:/root/.nvidia-omniverse/logs:rw
+      - ~/docker/isaac-sim/data:/root/.local/share/ov/data:rw
+      - ~/docker/isaac-sim/documents:/root/Documents:rw
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ${XAUTHORITY:-$HOME/.Xauthority}:/root/.Xauthority
+      - .:/tools/misc:ro
+    entrypoint:
+      - /tools/misc/isaac.demo.sh
+      - /tools/misc/isaac.demo.py
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]

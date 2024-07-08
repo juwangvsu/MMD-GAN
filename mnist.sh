@@ -1,27 +1,27 @@
 #!/usr/bin/env bash
 
-MODEL=MMD
+MODEL="MMD"
 SAVEPATH=./
 DATAPATH=./data
-export TF_MIN_GPU_MULTIPROCESSOR_COUNT=3;
+export TF_MIN_GPU_MULTIPROCESSOR_COUNT=3
 #export CUDA_VISIBLE_DEVICES=0;
 
-
-if [[${MODEL} == 'MMD']] || [[${MODEL} == 'ALL']]; then
+echo ${MODEL}
+if [ ${MODEL} == "MMD" ] || [[ ${MODEL} == 'ALL' ]]; then
     python ./gan/main.py \
         --checkpoint_dir=${SAVEPATH}checkpoint \
         --sample_dir=${SAVEPATH}samples \
         --log_dir=${SAVEPATH}logs \
-        --data_dir={DATAPATH} \
+        --data_dir=${DATAPATH} \
         --model=mmd --name=mmd --kernel=mix_rq_1dot \
         --architecture=dcgan --output_size=28 --dof_dim=16 \
         --gradient_penalty=1. --L2_discriminator_penalty=1. \
         --dataset=mnist \
         --max_iteration=50000 \
-        --MMD_lr_scheduler \
+        --MMD_lr_scheduler 
 fi
 
-if [[${MODEL} == 'WGAN-GP']] || [[${MODEL} == 'ALL']]; then
+if [[ ${MODEL} == 'WGAN-GP' ]] || [[ ${MODEL} == 'ALL' ]]; then
     python ./gan/main.py \
         --checkpoint_dir=${SAVEPATH}checkpoint \
         --sample_dir=${SAVEPATH}samples \
@@ -32,10 +32,10 @@ if [[${MODEL} == 'WGAN-GP']] || [[${MODEL} == 'ALL']]; then
         --gradient_penalty=10. \
         --dataset=mnist \
         --max_iteration=50000 \
-        --MMD_lr_scheduler \
+        --MMD_lr_scheduler 
 fi
 
-if [[${MODEL} == 'CRAMER']] || [[${MODEL} == 'ALL']]; then
+if [[ ${MODEL} == 'CRAMER' ]] || [[ ${MODEL} == 'ALL' ]]; then
     python ./gan/main.py \
         --checkpoint_dir=${SAVEPATH}checkpoint \
         --sample_dir=${SAVEPATH}samples \
@@ -46,7 +46,5 @@ if [[${MODEL} == 'CRAMER']] || [[${MODEL} == 'ALL']]; then
         --gradient_penalty=10. \
         --dataset=mnist \
         --max_iteration=50000 \
-        --MMD_lr_scheduler \
+        --MMD_lr_scheduler
 fi
-
-
