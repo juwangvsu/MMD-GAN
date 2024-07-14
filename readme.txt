@@ -1,5 +1,13 @@
+-----------7/13/24 testing igor's kid routine --------
+requires tensorflow 2.x with keras.
+conda activate openmmlab
 
+the original mmdgan use tf1.3 so it is easy to run in docker container
 
+debugging:
+File "kid.py", line 88, in <module>
+    inl = np.array(images1)[:32, :, :, :]
+IndexError: too many indices for array: array is 1-dimensional, but 4 were indexed
 
 -------------------------7/7/24 core.mmd no attribute __kernel----------------------------------------
   File "/workspace/gan/core/model.py", line 160, in set_loss
