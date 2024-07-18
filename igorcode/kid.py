@@ -6,7 +6,7 @@ from keras.applications.inception_v3 import InceptionV3
 import utils
 import tensorflow as tf
 import numpy as np
-
+import argparse
 
 class Kernel_Inception(object):
     def __init__(
@@ -86,16 +86,22 @@ class Kernel_Inception(object):
         return ki_mmd
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--dirroot', default='/home/student/Documents/datasets/Office-31', help='folder to output images and model checkpoints')
+    parser.add_argument('--dir1', default='amazon', help='folder to output images and model checkpoints')
+    parser.add_argument('--dir2', default='webcam', help='folder to output images and model checkpoints')
+    args = parser.parse_args()
     print('0000000000000000000000000000000000000000')
     input_shape = (75, 75, 3) #inception minimum shape, mnist not good
     gen_model = Kernel_Inception(input_shape=input_shape)
     images1, _ = utils.load_data(
-    "/home/student/Documents/datasets/Office-31/amazon",
-    input_shape=input_shape,
+        args.dirroot+'/'+args.dir1,
+        input_shape=input_shape,
     )
     images2, _ = utils.load_data(
-    "/home/student/Documents/datasets/Office-31/webcam",
-    input_shape=input_shape,
+        #"/home/student/Documents/datasets/Office-31/webcam",
+        args.dirroot+'/'+args.dir2,
+        input_shape=input_shape,
     )
     print('images1 len, shape ', len(images1), images1[0].shape)
     print('images2 len, shape ', len(images2), images2[0].shape)
